@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cube/flutter_cube.dart';
+import 'package:model_viewer_plus/model_viewer_plus.dart';
 
-void main() {
+Future<void> main() async {
+  // This initialization is best practice to ensure all bindings are ready.
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const SynapseApp());
 }
 
@@ -13,7 +15,7 @@ class SynapseApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0A0A14), // A deep navy blue
+        scaffoldBackgroundColor: const Color(0xFF0A0A14),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -24,15 +26,8 @@ class SynapseApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  late Scene _scene;
 
   @override
   Widget build(BuildContext context) {
@@ -40,14 +35,13 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Synapse'),
       ),
-      // CORRECTED: Use the 'Cube' widget from the library, not 'Scene'.
-      body: Cube(
-        // CORRECTED: The parameter is 'onSceneCreated'.
-        onSceneCreated: (Scene scene) {
-          _scene = scene;
-          // We can move the camera back a bit to see more of the space.
-          scene.camera.position.z = 10;
-        },
+      body: const ModelViewer(
+        backgroundColor: Color(0xFF0A0A14),
+        src: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+        alt: "A 3D model of our first Synapse node",
+        ar: true,
+        autoRotate: true,
+        cameraControls: true,
       ),
     );
   }

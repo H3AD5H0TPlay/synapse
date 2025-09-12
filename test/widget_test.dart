@@ -5,26 +5,23 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:synapse/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App renders the main screen with title', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    // We need to use our actual app widget, SynapseApp, instead of the old MyApp.
+    await tester.pumpWidget(const SynapseApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // ADDED FIX: Wait for all asynchronous operations, like the 3D model loading,
+    // to complete before proceeding with the test. This prevents the crash.
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that our app's title 'Synapse' is present in the AppBar.
+    // This is a simple but effective test to ensure the main screen loads correctly.
+    expect(find.text('Synapse'), findsOneWidget);
   });
 }
+
