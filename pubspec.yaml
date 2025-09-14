@@ -1,27 +1,28 @@
 name: synapse
 description: "AI-powered spatial brainstorming and knowledge-weaving tool."
-publish_to: 'none'
+# Prevent accidental publishing to pub.dev.
+publish_to: 'none' 
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.5.0-18.0.dev <4.0.0'
+  sdk: '>=3.5.0-156.0.dev <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-  # The core package for displaying 3D models.
+  
+  # For rendering 3D models in the application.
   model_viewer_plus: ^1.7.0
 
-  # The OFFICIAL and REQUIRED web platform implementation for the webview.
-  # This is the missing piece.
-  webview_flutter: ^4.13.0
-  webview_flutter_web: ^0.2.2+1
+  # ADDED: For generating unique identifiers for each node.
+  uuid: ^4.4.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
   flutter_lints: ^3.0.0
 
 flutter:

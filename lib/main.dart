@@ -1,21 +1,26 @@
-import 'dart:math'; // Import the math library for the Random() function.
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
+// A package to generate unique IDs for our nodes.
+import 'package:uuid/uuid.dart';
 
 Future<void> main() async {
-  // This initialization is best practice to ensure all bindings are ready.
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const SynapseApp());
 }
 
-// UPDATED: The Node class now holds its own position.
-class Node {
-  final String src;
-  final double x; // X position (0.0 to 1.0)
-  final double y; // Y position (0.0 to 1.0)
+// A helper for generating unique IDs
+const uuid = Uuid();
 
-  Node({required this.src, required this.x, required this.y});
+// UPDATED: The Node class now has a unique ID.
+class Node {
+  final String id;
+  final String src;
+  double x; // Position is no longer final, as it will be updated.
+  double y;
+
+  Node({required this.id, required this.src, required this.x, required this.y});
 }
 
 class SynapseApp extends StatelessWidget {
@@ -45,24 +50,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // This list now holds nodes with positions.
   final List<Node> _nodes = [
-    // The first node starts in the center of the screen.
     Node(
+      id: uuid.v4(), // Assign a unique ID to the first node.
       src: 'https://modelviewer.dev/shared-assets/models/sphere.glb',
       x: 0.5,
       y: 0.5,
     ),
   ];
 
-  // A function to add a new node at a random position.
+  // NEW: State variable to track the ID of the node being dragged.
+  String? _draggedNodeId;
+
   void _addNode() {
     final random = Random();
     setState(() {
       _nodes.add(
         Node(
+          id: uuid.v4(), // Assign a unique ID to new nodes.
           src: 'https://modelviewer.dev/shared-assets/models/sphere.glb',
-          // Generate a random double between 0.0 and 1.0 for the position.
           x: random.nextDouble(),
           y: random.nextDouble(),
         ),
@@ -78,26 +84,50 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Stack(
         children: [
-          // We loop through our list of nodes and position each one.
           ..._nodes.map((node) {
-            // UPDATED: Use the Align widget to position our nodes.
             return Align(
-              // The alignment is calculated from our 0.0-1.0 coordinates.
-              // This maps our simple coordinates to the widget's internal alignment system.
               alignment: Alignment((node.x * 2) - 1, (node.y * 2) - 1),
-              // We wrap the ModelViewer in a SizedBox to give it a specific size.
-              child: SizedBox(
-                width: 200,
-                height: 200,
-                child: ModelViewer(
-                  backgroundColor: Colors.transparent, // Transparent background
-                  src: node.src,
-                  alt: "A 3D model of a Synapse node",
-                  ar: true,
-                  autoRotate: true,
-                  cameraControls: true,
-                  shadowIntensity: 1,
-                  cameraOrbit: "0deg 75deg 105%",
+              // NEW: Wrap the node in a GestureDetector to make it interactive.
+              child: GestureDetector(
+                // When the user starts dragging...
+                onPanStart: (details) {
+                  setState(() {
+                    _draggedNodeId = node.id;
+                  });
+                },
+                // As the user drags...
+                onPanUpdate: (details) {
+                  // If we are dragging a node...
+                  if (_draggedNodeId == node.id) {
+                    setState(() {
+                      // Update its position based on the drag delta.
+                      // We divide by the screen width/height to normalize the value between 0.0 and 1.0.
+                      node.x += details.delta.dx / context.size!.width;
+                      node.y += details.delta.dy / context.size!.height;
+                    });
+                  }
+                },
+                // When the user stops dragging...
+                onPanEnd: (details) {
+                  setState(() {
+                    _draggedNodeId = null;
+                  });
+                },
+                child: SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: ModelViewer(
+                    backgroundColor: Colors.transparent,
+                    src: node.src,
+                    alt: "A 3D model of a Synapse node",
+                    ar: true,
+                    // UPDATED: Make the node rotate on its own, but stop when dragged.
+                    autoRotate: _draggedNodeId != node.id,
+                    // NEW: Control the speed of the rotation to be slower.
+                    rotationPerSecond: '20deg',
+                    cameraControls: false,
+                    shadowIntensity: 1,
+                  ),
                 ),
               ),
             );
